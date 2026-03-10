@@ -5,6 +5,7 @@ import { Screening } from "../models/screening.model";
 import { Seat } from "../models/seat.model";
 import { sequelize } from "../config/database";
 import { MercadoPagoConfig, Preference } from "mercadopago";
+import { Op } from "sequelize";
 
 // Inicializar el cliente de Mercado Pago
 const client = new MercadoPagoConfig({
@@ -90,6 +91,7 @@ export class PaymentService {
           ],
           external_reference: reservation.idReservation.toString(),
           notification_url:
+            process.env.NOTIFICATION_WEBHOOK_URL ||
             "https://trabajo-final-integrador-backend.onrender.com/api/payments/webhook",
 
           back_urls: {
@@ -187,6 +189,45 @@ export class PaymentService {
     await reservation.save();
 
     return reservation;
+  }
+
+  /**
+   * Cancela automáticamente todas las reservas que han estado en estado
+   * "Pending" por más de la cantidad de minutos especificada. Esta lógica
+   * se invoca periódicamente desde el arranque del servidor (job simple).
+   * @param minutes - número de minutos antes de expirar (por defecto 10)
+   * @returns cantidad de filas actualizadas
+   */
+  async expirePendingReservations(minutes = 1): Promise<number> {
+    const cutoff = new Date(Date.now() - minutes * 20 * 1000);
+    const [updated] = await Reservation.update(
+      { status: "Cancelled" },
+      {
+        where: {
+          status: "Pending",
+          reservationDate: { [Op.lt]: cutoff },
+        },
+      },
+    );
+    return updated;
+  }
+
+  /**
+   * Elimina reservas en estado "Cancelled" cuyo `updatedAt` sea anterior
+   * a `seconds` segundos atrás. Esto asegura que una reserva marcada como
+   * Cancelled sea borrada automáticamente tras el tiempo especificado.
+   * @param seconds - segundos a esperar antes de eliminar (por defecto 15)
+   * @returns cantidad de filas eliminadas
+   */
+  async deleteOldCancelledReservations(seconds = 15): Promise<number> {
+    const cutoff = new Date(Date.now() - seconds * 1000);
+    const deleted = await Reservation.destroy({
+      where: {
+        status: "Cancelled",
+        updatedAt: { [Op.lt]: cutoff },
+      },
+    });
+    return deleted;
   }
 }
 

@@ -226,7 +226,7 @@ function MainLayout({
         </Container>
       </Navbar>
 
-      <Container className="flex-grow-1 py-4">
+      <div className="flex-grow-1">
         {notification && (
           <Alert
             variant="success"
@@ -237,7 +237,7 @@ function MainLayout({
           </Alert>
         )}
         <Outlet />
-      </Container>
+      </div>
 
       <footer className="bg-dark text-white text-center py-3 mt-4">
         <p className="mb-0">© 2025 CineFlix - Sistema de Gestión de Cine</p>

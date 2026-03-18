@@ -1,12 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Autoplay, Pagination, Navigation, EffectFade } from "swiper/modules";
+import type { Swiper as SwiperType } from "swiper";
+import { Autoplay, Pagination, Navigation, Controller } from "swiper/modules";
 import { motion } from "framer-motion";
 import { Button } from "react-bootstrap";
 import { PlayCircle, Info } from "lucide-react";
 
 import "swiper/css";
-import "swiper/css/effect-fade";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import styles from "./HeroCarousel.module.css";
@@ -25,6 +25,11 @@ interface HeroCarouselProps {
 }
 
 const HeroCarousel: React.FC<HeroCarouselProps> = ({ items }) => {
+  // Estados para sincronizar los tres Swipers
+  const [firstSwiper, setFirstSwiper] = useState<SwiperType | null>(null);
+  const [secondSwiper, setSecondSwiper] = useState<SwiperType | null>(null);
+  const [thirdSwiper, setThirdSwiper] = useState<SwiperType | null>(null);
+
   if (!items || items.length === 0) {
     return (
       <div className={styles.emptyCarousel}>
@@ -33,31 +38,72 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ items }) => {
     );
   }
 
+  // Si hay menos de 3 ítems, el efecto triple no funciona bien, degradamos elegantemente a 1
+  const isTriple = items.length >= 3;
+
+  // Funciones para calcular el ítem anterior y siguiente en el array
+  const getPrevItem = (idx: number) =>
+    items[idx === 0 ? items.length - 1 : idx - 1];
+  const getNextItem = (idx: number) =>
+    items[idx === items.length - 1 ? 0 : idx + 1];
+
   return (
-    <div className={styles.heroCarouselContainer}>
+    <div className={styles.tripleSliderWrapper}>
+      {/* CARRUSEL IZQUIERDO (Película Anterior) */}
+      {isTriple && (
+        <Swiper
+          onSwiper={setFirstSwiper}
+          modules={[Controller]}
+          loop={true}
+          allowTouchMove={false} // Solo se controla desde el principal
+          speed={1000}
+          className={styles.sideSwiper}
+        >
+          {items.map((_, idx) => {
+            const item = getPrevItem(idx);
+            return (
+              <SwiperSlide
+                key={`left-${item.id}`}
+                className={styles.swiperSlide}
+              >
+                <div
+                  className={styles.sideSlideBackground}
+                  style={{ backgroundImage: `url(${item.backgroundImage})` }}
+                ></div>
+              </SwiperSlide>
+            );
+          })}
+        </Swiper>
+      )}
+
+      {/* CARRUSEL CENTRAL (El Principal) */}
       <Swiper
-        effect={"fade"}
-        speed={1000} // Transición suave entre imágenes
+        onSwiper={setSecondSwiper}
+        controller={{
+          control: [firstSwiper, thirdSwiper].filter(Boolean) as SwiperType[],
+        }}
+        speed={1000}
         autoplay={{
           delay: 5500,
           disableOnInteraction: false,
         }}
-        pagination={{
-          clickable: true,
-        }}
+        pagination={{ clickable: true }}
         navigation={true}
-        loop={true} // Permite que el carrusel sea infinito
-        modules={[Autoplay, EffectFade, Navigation, Pagination]}
-        className={styles.mySwiper}
+        loop={true}
+        modules={[Autoplay, Navigation, Pagination, Controller]}
+        className={isTriple ? styles.mainSwiper : styles.singleSwiper}
       >
         {items.map((item) => (
-          <SwiperSlide key={item.id} className={styles.swiperSlide}>
-            {/* Usamos el render prop para detectar qué slide está activo */}
+          <SwiperSlide key={`main-${item.id}`} className={styles.swiperSlide}>
             {({ isActive }) => (
               <>
                 <div
                   className={styles.slideBackground}
-                  style={{ backgroundImage: `url(${item.backgroundImage})` }}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    backgroundImage: `url(${item.backgroundImage})`,
+                  }}
                 ></div>
                 <div className={styles.gradientOverlay}></div>
 
@@ -117,6 +163,33 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ items }) => {
           </SwiperSlide>
         ))}
       </Swiper>
+
+      {/* CARRUSEL DERECHO (Película Siguiente) */}
+      {isTriple && (
+        <Swiper
+          onSwiper={setThirdSwiper}
+          modules={[Controller]}
+          loop={true}
+          allowTouchMove={false}
+          speed={1000}
+          className={styles.sideSwiper}
+        >
+          {items.map((_, idx) => {
+            const item = getNextItem(idx);
+            return (
+              <SwiperSlide
+                key={`right-${item.id}`}
+                className={styles.swiperSlide}
+              >
+                <div
+                  className={styles.sideSlideBackground}
+                  style={{ backgroundImage: `url(${item.backgroundImage})` }}
+                ></div>
+              </SwiperSlide>
+            );
+          })}
+        </Swiper>
+      )}
     </div>
   );
 };

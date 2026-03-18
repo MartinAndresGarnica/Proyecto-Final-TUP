@@ -18,6 +18,8 @@ Basado en el análisis de las dependencias, el sistema utiliza las siguientes te
 - **Base de Datos:** PostgreSQL.
 - **Autenticación:** JSON Web Tokens (JWT) y Bcryptjs para el hashing de contraseñas.
 - **Pagos:** MercadoPago SDK.
+- **Seguridad:** Helmet (Cabeceras HTTP seguras), express-rate-limit (Prevención DDOS/Fuerza Bruta) y CORS restrictivo.
+- **Validación de Entorno:** Zod para tipado estricto y validación de variables en `.env`.
 - **Middleware:** Multer para la gestión de subida de archivos (posters de películas y carrusel).
 - **Testing:** Jest y Supertest.
 
@@ -69,7 +71,7 @@ create database cinema_db
 ```
 
 3. Configurar variables de entorno:
-   Edita el archivo `.env.example` a `.env`
+   Edita el archivo `.env.example` a `.env` y asegúrate de configurar correctamente `FRONTEND_URL` y las variables de base de datos.
 4. Ejecutar el comando build:
 
 ```bash

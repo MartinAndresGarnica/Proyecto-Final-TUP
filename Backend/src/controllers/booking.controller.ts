@@ -1,33 +1,26 @@
 import { Request, Response } from "express";
 import bookingService from "../services/booking.services";
+import { AppError } from "../utils/AppError";
 
 export const getBookings = async (req: Request, res: Response) => {
-  try {
-    const user = (req as any).user;
-    const userId = user?.idUser;
+  const user = (req as any).user;
+  const userId = user?.idUser;
 
-    if (!userId) {
-      return res.status(401).json({ message: "User not authenticated" });
-    }
-
-    const reservations = await bookingService.listReservationsByUser(userId);
-    return res.status(200).json(reservations);
-  } catch (error: any) {
-    return res.status(500).json({ message: error.message });
+  if (!userId) {
+    throw new AppError("User not authenticated", 401);
   }
+
+  const reservations = await bookingService.listReservationsByUser(userId);
+  return res.status(200).json(reservations);
 };
 
 export const getAllBookingsAdmin = async (req: Request, res: Response) => {
-  try {
-    const user = (req as any).user; // Ensure user is authenticated, though not for filtering
-    if (!user) {
-      return res.status(401).json({ message: "User not authenticated" });
-    }
-    const reservations = await bookingService.listAllReservations();
-    return res.status(200).json(reservations);
-  } catch (error: any) {
-    return res.status(500).json({ message: error.message });
+  const user = (req as any).user;
+  if (!user) {
+    throw new AppError("User not authenticated", 401);
   }
+  const reservations = await bookingService.listAllReservations();
+  return res.status(200).json(reservations);
 };
 
 export const createBooking = async (req: Request, res: Response) => {
@@ -35,21 +28,20 @@ export const createBooking = async (req: Request, res: Response) => {
   const user = (req as any).user;
 
   if (!screening || !seats) {
-    return res.status(400).json({ message: "Missing screening or seats" });
+    throw new AppError("Missing screening or seats", 400);
   }
 
-  // Determine which user to attribute this booking to. Admin users may specify a different
-  // userId in the request body; regular users are limited to their own id.
   let userId: number | undefined = user?.idUser;
   const isAdmin =
     user &&
     (String(user.role).toLowerCase() === "admin" || user.role === true);
+  
   if (isAdmin && requestedUserId) {
     userId = requestedUserId;
   }
 
   if (!userId) {
-    return res.status(401).json({ message: "User not authenticated" });
+    throw new AppError("User not authenticated", 401);
   }
 
   const screeningId = screening.idScreening;
@@ -58,28 +50,23 @@ export const createBooking = async (req: Request, res: Response) => {
     const created = await bookingService.createReservation(
       screeningId,
       userId,
-      seats, // Expects {row, column}[]
+      seats,
     );
     return res.status(201).json(created);
   } catch (err: any) {
-    if (!err) {
-      return res.status(500).json({ message: "Unknown error" });
-    }
-
     if (err.message && err.message.includes("occupied")) {
-      return res.status(409).json({ message: err.message });
+      throw new AppError(err.message, 409);
     }
-
-    return res.status(500).json({ message: err.message || "Unknown error" });
+    throw err;
   }
 };
 
 export const updateBooking = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { seats } = req.body; // Expecting { row, column }[]
+  const { seats } = req.body;
 
   if (!seats || !Array.isArray(seats)) {
-    return res.status(400).json({ message: "Invalid seats data" });
+    throw new AppError("Invalid seats data", 400);
   }
 
   try {
@@ -87,9 +74,9 @@ export const updateBooking = async (req: Request, res: Response) => {
     return res.json(updated);
   } catch (err: any) {
     if (err.message && err.message.includes("occupied")) {
-      return res.status(409).json({ message: err.message });
+      throw new AppError(err.message, 409);
     }
-    return res.status(500).json({ message: err.message || "Unknown error" });
+    throw err;
   }
 };
 
@@ -100,8 +87,8 @@ export const deleteBooking = async (req: Request, res: Response) => {
     return res.status(204).send();
   } catch (err: any) {
     if (err.message === "Reservation not found") {
-      return res.status(404).json({ message: "Reservation not found" });
+      throw new AppError("Reservation not found", 404);
     }
-    return res.status(500).json({ message: err.message || "Unknown error" });
+    throw err;
   }
 };

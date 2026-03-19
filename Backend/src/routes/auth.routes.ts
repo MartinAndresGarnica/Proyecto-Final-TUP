@@ -1,10 +1,19 @@
 import { Router } from "express";
+import rateLimit from "express-rate-limit";
 import AuthController from "../controllers/auth.controller";
 
 const router = Router();
 
-router.post("/auth/register", AuthController.register.bind(AuthController));
-router.post("/auth/login", AuthController.login.bind(AuthController));
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  limit: 5, // Límite de 5 peticiones fallidas previas a bloqueo por IP
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  message: "Demasiados intentos de inicio de sesión o registro desde esta IP, por favor inténtalo de nuevo después de 15 minutos"
+});
+
+router.post("/auth/register", authLimiter, AuthController.register.bind(AuthController));
+router.post("/auth/login", authLimiter, AuthController.login.bind(AuthController));
 
 // password recovery endpoints
 router.post(

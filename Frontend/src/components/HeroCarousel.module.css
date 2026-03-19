@@ -1,4 +1,6 @@
-.heroCarouselContainer {
+/* Nuevo contenedor Flex para los 3 sliders */
+.tripleSliderWrapper {
+  display: flex;
   width: 100%;
   height: 60vh;
   position: relative;
@@ -7,14 +9,41 @@
 }
 
 @media (min-width: 768px) {
-  .heroCarouselContainer {
-    height: 90vh;
+  .tripleSliderWrapper {
+    height: 100vh;
   }
 }
 
-.mySwiper {
+/* Ocultar laterales en móvil por espacio */
+.sideSwiper {
+  display: none;
+}
+
+/* En móvil, el principal ocupa todo */
+.mainSwiper,
+.singleSwiper {
   width: 100%;
   height: 100%;
+}
+
+/* En escritorio, distribuimos el ancho (20% - 60% - 20%) */
+@media (min-width: 768px) {
+  .sideSwiper {
+    display: block;
+    width: 15%;
+    height: 100%;
+    /* Efecto para oscurecer los laterales y dar protagonismo al centro */
+    opacity: 0.6;
+    transition: opacity 0.3s ease;
+  }
+
+  .mainSwiper {
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    /* Sombra para crear profundidad sobre los laterales */
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.9);
+  }
 }
 
 .swiperSlide {
@@ -38,13 +67,25 @@
   z-index: 0;
 }
 
+/* Fondo especial para los laterales (con un ligero desenfoque) */
+.sideSlideBackground {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  filter: blur(3px) grayscale(30%);
+}
+
 .gradientOverlay {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  /* Gradiente más complejo: oscurece los bordes y la parte inferior */
   background:
     linear-gradient(
       to bottom,
@@ -73,7 +114,7 @@
   align-items: center;
   font-size: 1.5rem;
   color: #6c757d;
-  background-color: #141414; /* Tono oscuro tipo cine */
+  background-color: #141414;
 }
 
 /* Custom Swiper Pagination */

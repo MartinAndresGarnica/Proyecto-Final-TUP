@@ -19,6 +19,7 @@ import { ProcesoCompra } from "./components/ProcesoCompra";
 import { Historial } from "./components/Historial";
 import { AdminPanel } from "./components/AdminPanel";
 import { AdminPanelScreenings } from "./components/AdminPanelScreenings";
+import { MoviePage } from "./components/Movie";
 // Import new pages
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { ResetPasswordPage } from "./pages/ResetPasswordPage";
@@ -145,8 +146,8 @@ function MainLayout({
 
   return (
     <div
-      className="d-flex flex-column"
-      style={{ minHeight: "100vh", backgroundColor: "#f5f5f5" }}
+      className="d-flex flex-column lead"
+      style={{ minHeight: "100vh", backgroundColor: "#F3F4F6" }}
     >
       <Navbar bg="dark" expand="lg" sticky="top" className="shadow-sm">
         <Container>
@@ -311,7 +312,7 @@ function AppContent() {
           }
         />
         <Route
-          path="/cartelera/:idMovie?"
+          path="/cartelera"
           element={
             <RequireAuth>
               <Cartelera
@@ -319,6 +320,14 @@ function AppContent() {
                   navigate("/booking", { state: { screening: s, movie: m } })
                 }
               />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/movie/:id"
+          element={
+            <RequireAuth>
+              <MoviePage />
             </RequireAuth>
           }
         />

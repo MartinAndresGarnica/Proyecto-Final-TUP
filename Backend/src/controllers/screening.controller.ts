@@ -3,6 +3,7 @@ import {
   ScreeningService,
   ScreeningHasReservationsError,
 } from "../services/screening.services";
+import { AppError } from "../utils/AppError";
 
 export class ScreeningController {
   private screeningService: ScreeningService;
@@ -11,32 +12,23 @@ export class ScreeningController {
   }
 
   async getAllScreenings(req: Request, res: Response): Promise<Response> {
-    try {
-      const { movieId } = req.query;
-      const numMovieId = movieId ? Number(movieId) : undefined;
-      const screenings = await this.screeningService.getScreenings(numMovieId);
-      return res.status(200).json(screenings);
-    } catch (error: any) {
-      return res.status(500).json({ message: error.message });
-    }
+    const { movieId } = req.query;
+    const numMovieId = movieId ? Number(movieId) : undefined;
+    const screenings = await this.screeningService.getScreenings(numMovieId);
+    return res.status(200).json(screenings);
   }
 
   async getScreeningById(req: Request, res: Response): Promise<Response> {
     const rawId = req.params?.id;
-    if (!rawId) return res.status(400).json({ message: "Missing id param" });
+    if (!rawId) throw new AppError("Missing id param", 400);
     const id = Number(rawId);
-    if (Number.isNaN(id))
-      return res.status(400).json({ message: "Invalid id param" });
+    if (Number.isNaN(id)) throw new AppError("Invalid id param", 400);
 
-    try {
-      const screening = await this.screeningService.getScreeningById(id);
-      if (screening) {
-        return res.status(200).json(screening);
-      } else {
-        return res.status(404).json({ message: "Screening not found" });
-      }
-    } catch (error: any) {
-      return res.status(500).json({ message: error.message });
+    const screening = await this.screeningService.getScreeningById(id);
+    if (screening) {
+      return res.status(200).json(screening);
+    } else {
+      throw new AppError("Screening not found", 404);
     }
   }
 
@@ -55,33 +47,27 @@ export class ScreeningController {
       return res.status(201).json(createdScreening);
     } catch (error: any) {
       if (error.name === "ScreeningValidationError") {
-        return res.status(400).json({ message: error.message });
+        throw new AppError(error.message, 400);
       }
-      return res.status(500).json({ message: error.message });
+      throw error;
     }
   }
 
   async getSeatsForScreening(req: Request, res: Response): Promise<Response> {
     const rawId = req.params?.id;
-    if (!rawId) return res.status(400).json({ message: "Missing id param" });
+    if (!rawId) throw new AppError("Missing id param", 400);
     const id = Number(rawId);
-    if (Number.isNaN(id))
-      return res.status(400).json({ message: "Invalid id param" });
+    if (Number.isNaN(id)) throw new AppError("Invalid id param", 400);
 
-    try {
-      const occupied = await this.screeningService.getOccupiedSeats(id);
-      return res.status(200).json({ occupied });
-    } catch (error: any) {
-      return res.status(500).json({ message: error.message });
-    }
+    const occupied = await this.screeningService.getOccupiedSeats(id);
+    return res.status(200).json({ occupied });
   }
 
   async updateScreening(req: Request, res: Response): Promise<Response> {
     const rawId = req.params?.id;
-    if (!rawId) return res.status(400).json({ message: "Missing id param" });
+    if (!rawId) throw new AppError("Missing id param", 400);
     const id = Number(rawId);
-    if (Number.isNaN(id))
-      return res.status(400).json({ message: "Invalid id param" });
+    if (Number.isNaN(id)) throw new AppError("Invalid id param", 400);
 
     try {
       const { date, start, end, ticketPrice, movieId, roomId } = req.body;
@@ -96,22 +82,21 @@ export class ScreeningController {
       if (result) {
         return res.status(200).json(result);
       } else {
-        return res.status(404).json({ message: "Screening not found" });
+        throw new AppError("Screening not found", 404);
       }
     } catch (error: any) {
       if (error.name === "ScreeningValidationError") {
-        return res.status(400).json({ message: error.message });
+        throw new AppError(error.message, 400);
       }
-      return res.status(500).json({ message: error.message });
+      throw error;
     }
   }
 
   async deleteScreening(req: Request, res: Response): Promise<Response> {
     const rawId = req.params?.id;
-    if (!rawId) return res.status(400).json({ message: "Missing id param" });
+    if (!rawId) throw new AppError("Missing id param", 400);
     const id = Number(rawId);
-    if (Number.isNaN(id))
-      return res.status(400).json({ message: "Invalid id param" });
+    if (Number.isNaN(id)) throw new AppError("Invalid id param", 400);
 
     try {
       const success = await this.screeningService.deleteScreening(id);
@@ -120,13 +105,13 @@ export class ScreeningController {
           .status(200)
           .json({ message: "Screening deleted successfully" });
       } else {
-        return res.status(404).json({ message: "Screening not found" });
+        throw new AppError("Screening not found", 404);
       }
     } catch (error: any) {
       if (error instanceof ScreeningHasReservationsError) {
-        return res.status(409).json({ message: error.message }); // 409 Conflict
+        throw new AppError(error.message, 409); // 409 Conflict
       }
-      return res.status(500).json({ message: error.message });
+      throw error;
     }
   }
 }

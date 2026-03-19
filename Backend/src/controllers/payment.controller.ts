@@ -1,47 +1,35 @@
 import { Request, Response } from "express";
 import paymentService from "../services/payment.service";
+import { AppError } from "../utils/AppError";
 
 /**
  * Crea una preferencia de Mercado Pago para el pago de tickets
  * Body: { userId, screeningId, seatIds: number[] }
  */
 export const createPreference = async (req: Request, res: Response) => {
-  try {
-    const { userId, screeningId, seatIds } = req.body;
+  const { userId, screeningId, seatIds } = req.body;
 
-    // Validar que se proporcionen los datos necesarios
-    if (!userId || !screeningId || !seatIds || !Array.isArray(seatIds)) {
-      return res.status(400).json({
-        message:
-          "Missing or invalid required fields: userId, screeningId, seatIds",
-      });
-    }
-
-    if (seatIds.length === 0) {
-      return res.status(400).json({
-        message: "At least one seat must be selected",
-      });
-    }
-
-    // Llamar al servicio para crear la preferencia
-    const preference = await paymentService.createPreference(
-      userId,
-      screeningId,
-      seatIds,
-    );
-
-    return res.status(201).json({
-      success: true,
-      message: "Preference created successfully",
-      data: preference,
-    });
-  } catch (error: any) {
-    console.error("Error creating preference:", error);
-    return res.status(500).json({
-      success: false,
-      message: error.message || "Internal server error",
-    });
+  // Validar que se proporcionen los datos necesarios
+  if (!userId || !screeningId || !seatIds || !Array.isArray(seatIds)) {
+    throw new AppError("Missing or invalid required fields: userId, screeningId, seatIds", 400);
   }
+
+  if (seatIds.length === 0) {
+    throw new AppError("At least one seat must be selected", 400);
+  }
+
+  // Llamar al servicio para crear la preferencia
+  const preference = await paymentService.createPreference(
+    userId,
+    screeningId,
+    seatIds,
+  );
+
+  return res.status(201).json({
+    success: true,
+    message: "Preference created successfully",
+    data: preference,
+  });
 };
 
 /**
@@ -49,32 +37,22 @@ export const createPreference = async (req: Request, res: Response) => {
  * Actualiza el estado de la reserva cuando se aprueba el pago
  */
 export const handleWebhook = async (req: Request, res: Response) => {
-  try {
-    const { type, data } = req.body;
-    if (type === "payment") {
-      const paymentId = data?.id;
+  const { type, data } = req.body;
+  if (type === "payment") {
+    const paymentId = data?.id;
 
-      if (!paymentId) {
-        return res.status(400).json({
-          message: "Missing payment ID in webhook",
-        });
-      }
-
-      console.log("Webhook received for payment:", paymentId);
+    if (!paymentId) {
+      throw new AppError("Missing payment ID in webhook", 400);
     }
 
-    // Responder inmediatamente a Mercado Pago
-    return res.status(200).json({
-      success: true,
-      message: "Webhook received",
-    });
-  } catch (error: any) {
-    console.error("Error handling webhook:", error);
-    return res.status(500).json({
-      success: false,
-      message: error.message || "Internal server error",
-    });
+    console.log("Webhook received for payment:", paymentId);
   }
+
+  // Responder inmediatamente a Mercado Pago
+  return res.status(200).json({
+    success: true,
+    message: "Webhook received",
+  });
 };
 
 export const handleMercadopagoWebhook = async (req: Request, res: Response) => {
@@ -133,7 +111,7 @@ export const handleMercadopagoWebhook = async (req: Request, res: Response) => {
     }
   } catch (error: any) {
     console.error("❌ Error en el webhook de Mercado Pago:", error);
-    // Nota: Como ya enviamos el res.status(200) arriba, no podemos enviar otra respuesta aquí.
+    // Nota: Como ya enviamos el res.status(200) arriba, no podemos enviar otra respuesta al manejador global.
   }
 };
 
@@ -142,36 +120,24 @@ export const handleMercadopagoWebhook = async (req: Request, res: Response) => {
  * Params: reservationId
  */
 export const getReservationStatus = async (req: Request, res: Response) => {
-  try {
-    const { reservationId } = req.params;
+  const { reservationId } = req.params;
 
-    if (!reservationId) {
-      return res.status(400).json({
-        message: "Reservation ID is required",
-      });
-    }
-
-    const reservation = await paymentService.getReservationStatus(
-      parseInt(reservationId, 10),
-    );
-
-    if (!reservation) {
-      return res.status(404).json({
-        message: "Reservation not found",
-      });
-    }
-
-    return res.status(200).json({
-      success: true,
-      data: reservation,
-    });
-  } catch (error: any) {
-    console.error("Error getting reservation status:", error);
-    return res.status(500).json({
-      success: false,
-      message: error.message || "Internal server error",
-    });
+  if (!reservationId) {
+    throw new AppError("Reservation ID is required", 400);
   }
+
+  const reservation = await paymentService.getReservationStatus(
+    parseInt(reservationId, 10),
+  );
+
+  if (!reservation) {
+    throw new AppError("Reservation not found", 404);
+  }
+
+  return res.status(200).json({
+    success: true,
+    data: reservation,
+  });
 };
 
 /**
@@ -179,29 +145,19 @@ export const getReservationStatus = async (req: Request, res: Response) => {
  * Params: reservationId
  */
 export const cancelReservation = async (req: Request, res: Response) => {
-  try {
-    const { reservationId } = req.params;
+  const { reservationId } = req.params;
 
-    if (!reservationId) {
-      return res.status(400).json({
-        message: "Reservation ID is required",
-      });
-    }
-
-    const reservation = await paymentService.cancelReservation(
-      parseInt(reservationId, 10),
-    );
-
-    return res.status(200).json({
-      success: true,
-      message: "Reservation cancelled successfully",
-      data: reservation,
-    });
-  } catch (error: any) {
-    console.error("Error cancelling reservation:", error);
-    return res.status(500).json({
-      success: false,
-      message: error.message || "Internal server error",
-    });
+  if (!reservationId) {
+    throw new AppError("Reservation ID is required", 400);
   }
+
+  const reservation = await paymentService.cancelReservation(
+    parseInt(reservationId, 10),
+  );
+
+  return res.status(200).json({
+    success: true,
+    message: "Reservation cancelled successfully",
+    data: reservation,
+  });
 };

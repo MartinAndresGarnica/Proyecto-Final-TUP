@@ -66,7 +66,7 @@ router.post("/seed", async (req: Request, res: Response) => {
         lenguage: "Inglés",
         subtitles: true,
         poster:
-          "https://via.placeholder.com/300x450/1a1a1a/FFD700?text=Inception",
+          "https://m.media-amazon.com/images/I/714b1KQmskL._AC_UF894,1000_QL80_.jpg",
       },
       {
         name: "Interstellar",
@@ -78,31 +78,32 @@ router.post("/seed", async (req: Request, res: Response) => {
         lenguage: "Inglés",
         subtitles: true,
         poster:
-          "https://via.placeholder.com/300x450/1a1a1a/FFA500?text=Interstellar",
+          "https://m.media-amazon.com/images/I/91obuWzA3XL._AC_UF894,1000_QL80_.jpg",
       },
       {
         name: "The Dark Knight",
         length: 152,
-        description: "Batman enfrenta al Joker.",
+        description:
+          "Batman tiene que mantener el equilibrio entre el heroísmo y el vigilantismo para pelear contra un vil criminal conocido como el Guasón, que pretende orillar a Ciudad Gótica a la anarquía.",
         genre: "Acción",
         categorie: "Clásico",
         director: "Christopher Nolan",
         lenguage: "Inglés",
         subtitles: true,
-        poster:
-          "https://via.placeholder.com/300x450/1a1a1a/DC143C?text=Dark+Knight",
+        poster: "https://i.ebayimg.com/images/g/TvwAAOSwmoxfQ2ku/s-l1200.jpg",
       },
       {
         name: "Pulp Fiction",
         length: 154,
-        description: "Historias entrelazadas de crimen.",
+        description:
+          "Vincent Vega y Jules Winnfield son sicarios con una inclinación por las discusiones filosóficas. En esta película policíaca ultramoderna con múltiples tramas, sus historias se entrelazan con las de su jefe, el gánster Marsellus Wallace, su esposa, la actriz Mia, el boxeador en apuros Butch Coolidge, el mediador Winston Wolfe y una pareja de ladrones nerviosos, Pumpkin y Honey Bunny.",
         genre: "Crimen",
         categorie: "Clásico",
         director: "Quentin Tarantino",
         lenguage: "Inglés",
         subtitles: true,
         poster:
-          "https://via.placeholder.com/300x450/1a1a1a/FF69B4?text=Pulp+Fiction",
+          "https://m.media-amazon.com/images/I/718LfFW+tIL._AC_UF894,1000_QL80_.jpg",
       },
       {
         name: "The Matrix",
@@ -113,8 +114,7 @@ router.post("/seed", async (req: Request, res: Response) => {
         director: "The Wachowskis",
         lenguage: "Inglés",
         subtitles: true,
-        poster:
-          "https://via.placeholder.com/300x450/1a1a1a/00FF00?text=The+Matrix",
+        poster: "https://static.posters.cz/image/1300/104636.jpg",
       },
       {
         name: "Forrest Gump",

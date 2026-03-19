@@ -96,10 +96,13 @@ export class PaymentService {
 
           back_urls: {
             success:
+              process.env.MERCADOPAGO_SUCCESS_URL ||
               "https://trabajo-final-integrador-frontend.onrender.com/payment-success",
             pending:
+              process.env.MERCADOPAGO_PENDING_URL ||
               "https://trabajo-final-integrador-frontend.onrender.com/payment-pending",
             failure:
+              process.env.MERCADOPAGO_FAILURE_URL ||
               "https://trabajo-final-integrador-frontend.onrender.com/payment-failure",
           },
           auto_return: "approved",

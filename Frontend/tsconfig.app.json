@@ -19,6 +19,7 @@
 
     /* Linting - Ajustado para facilitar el build en Render */
     "strict": true,
+    "forceConsistentCasingInFileNames": true,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true
